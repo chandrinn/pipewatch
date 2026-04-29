@@ -8,6 +8,8 @@ from typing import Optional
 from pipewatch.config import PipelineConfig
 from pipewatch.metrics import PipelineMetrics
 
+_SUPPORTED_SOURCES = {"mock"}
+
 
 def _simulate_metrics(config: PipelineConfig, seed: Optional[int] = None) -> PipelineMetrics:
     """Generate simulated metrics for a pipeline (used when source is 'mock')."""
@@ -40,12 +42,16 @@ def fetch_metrics(config: PipelineConfig) -> PipelineMetrics:
 
     raise NotImplementedError(
         f"Source '{config.source}' is not supported yet. "
-        "Supported sources: mock"
+        f"Supported sources: {', '.join(sorted(_SUPPORTED_SOURCES))}"
     )
 
 
 def fetch_all_metrics(configs: list[PipelineConfig]) -> list[PipelineMetrics]:
-    """Fetch metrics for all configured pipelines."""
+    """Fetch metrics for all configured pipelines.
+
+    Pipelines that fail to fetch are skipped with a warning; all others are
+    returned in the same order as *configs*.
+    """
     results = []
     for config in configs:
         try:
