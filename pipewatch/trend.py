@@ -25,11 +25,28 @@ class TrendSummary:
         """Return health as a 0–100 percentage."""
         return (1.0 - self.failure_rate) * 100.0
 
+    @property
+    def is_degraded(self) -> bool:
+        """Return True when the failure rate exceeds 20%.
+
+        Useful for quickly flagging pipelines that need attention without
+        having to inspect the raw ``failure_rate`` value.
+        """
+        return self.failure_rate > 0.20
+
 
 def compute_trend(records: List[dict]) -> Optional[TrendSummary]:
     """Compute a :class:`TrendSummary` from a list of history records.
 
     Returns *None* when *records* is empty.
+
+    Each record is expected to contain the following keys:
+
+    * ``pipeline_name`` (str) – name of the pipeline (taken from the first record)
+    * ``healthy`` (bool) – whether the run completed without failures
+    * ``rows_processed`` (int | float) – number of rows handled in the run
+    * ``duration_seconds`` (float) – wall-clock time of the run
+    * ``error_count`` (int) – number of errors logged during the run
     """
     if not records:
         return None
